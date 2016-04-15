@@ -44,14 +44,9 @@
 	}
 
 	// UI EVENTS
-   if ($door.attr('aria-pressed') == 'true') {
+	door.addEventListener('change', function(e){
 		publishUpdate({item: 'door', open: this.checked});
-     $(id).attr('aria-pressed', 'false');
-   }
-   else {
-     $(id).attr('aria-pressed', 'true');
-   }
- }
+	}, false);
 
 	lightLiving.addEventListener('change', function(e){
 		publishUpdate({item: 'light-living', brightness: +this.value});
