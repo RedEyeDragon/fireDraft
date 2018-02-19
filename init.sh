@@ -30,12 +30,4 @@ echo "To see the packets that your reflector program is sending: sudo ip netns e
 echo "To debug what's going on in the reflector's network namespace, you can open a bash terminal with the following: sudo ip netns exec reflector /bin/bash"
 echo "Control-C when you're done to kill your reflector and cleanup."
 echo ""
-sudo ip netns exec reflector ./reflector --interface v-ref --victim-ip 10.0.0.3 --victim-ethernet ff:b2:bb:ee:aa:8f --reflector-ip 10.0.0.4 --reflector-ethernet aa:11:86:99:88:8f
 
-echo "Cleaning up"
-sudo ip netns exec reflector ip link set lo down
-sudo ip netns exec reflector ip link set eth0-fake down
-
-sudo ip link del v-test
-
-sudo ip netns del reflector

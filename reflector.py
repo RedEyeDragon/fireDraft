@@ -1,5 +1,5 @@
+#!/usr/bin/python3
 
-#!/usr/local/bin/python
 import scapy.all
 from scapy.all import *
 import argparse
@@ -7,43 +7,76 @@ import argparse
 # Args
 parser = argparse.ArgumentParser()
 parser.add_argument('--interface')
-parser.add_argument('--victim-ip')
-parser.add_argument('--victim-ethernet')
-parser.add_argument('--reflector-ip')
-parser.add_argument('--reflector-ethernet')
+parser.add_argument('--victim-ip', dest='victim_ip')
+parser.add_argument('--victim-ethernet', dest='victim_ethernet')
+parser.add_argument('--reflector-ip', dest='reflector_ip')
+parser.add_argument('--reflector-ethernet', dest='reflector_ethernet')
 args = parser.parse_args()
+conf.iface = args.interface
 
-counter = 0
-# construct packet
-def construct_packet (packet):
-   global counter
-   counter += 1
-   return 'Packet #{}: {} ==> {}'.format(counter, packet[0][1].src, packet[0][1].dst)
 
 # monitor the arp requests
-def arp_monitor (pkt):
-   if pkt[ARP].op == 1:
-      #return 'Request: {} is asking about {}'.format(pkt[ARP].psrc, pkt[ARP].pdst)
-      return sendp(Ether(dst=pkt[ARP.hwsrc,
-src=args.reflector-ip)/ARP(hwsrc=args.reflector-ethernet,pdst=pkt[ARP.psrc)
-   if pkt[ARP].op == 2:
-      return '*Response: {} has address {}'.format(pkt[ARP].hwsrc, pkt[ARP].psrc)
+def reflect_pkt (pkt):
+   #pkt.show2()
+   if pkt.haslayer(ARP) and pkt[ARP].pdst == args.victim_ip:
+      arppkt = eval(pkt.command())
+      arppkt[Ether].src = args.victim_ethernet
+      arppkt[Ether].dst = pkt[Ether].src
+      arppkt[ARP].psrc = args.victim_ip
+      arppkt[ARP].hwsrc = args.victim_ethernet
+      arppkt[ARP].pdst = pkt[ARP].psrc
+      arppkt[ARP].hwdst = pkt[ARP].hwsrc
+      arppkt[ARP].op = 2
 
-#arppkt = eval(pkts[0].command())
-#arppkt[ARP].hwsrc = "args.reflector-ip"
-#arppkt[ARP].pdst = "pkts[ARP].psrc"
-#arppkt[Ether].dst = "pkts[ARP].hwsrc"
+      sendp(arppkt)
+      arppkt.show2()
+   elif pkt.haslayer(ARP) and pkt[ARP].pdst == args.reflector_ip:
+      arppkt = eval(pkt.command())
+      arppkt[Ether].src = args.reflector_ethernet
+      arppkt[Ether].dst = pkt[Ether].src
+      arppkt[ARP].psrc = args.reflector_ip
+      arppkt[ARP].hwsrc = args.reflector_ethernet
+      arppkt[ARP].pdst = pkt[ARP].psrc
+      arppkt[ARP].hwdst = pkt[ARP].hwsrc
+      arppkt[ARP].op = 2
 
-#sniff(filter='ip', count=0, prn=construct_packet)
-sniff(count=0, filter='arp', prn=arp_monitor)
+      sendp(arppkt)
+      arppkt.show2()
 
-# send reply
-#arppkt
-#sendp(arppkt)
+# IP layer
+   if pkt.haslayer(IP) and pkt[IP].dst == args.victim_ip:
+      ippkt = eval(pkt.command())
+         # Handle TCP
+      if pkt.haslayer(TCP) and pkt[IP].dst == args.victim_ip:
+         del ippkt[TCP].chksum
+      if pkt.haslayer(UDP) and pkt[IP].dst == args.victim_ip:
+         del ippkt[UDP].chksum
+      if pkt.haslayer(ICMP) and pkt[IP].dst == args.victim_ip:
+         del ippkt[ICMP].chksum
 
-# reading ARP requests
-#pkts = sniff(count=0,filter="arp")
-#pkts.summary()
-#pkts[0].show()
+# IP for Reflector
+   if pkt.haslayer(IP) and pkt[IP].dst == args.reflector_ip:
+      ippkt = eval(pkt.command())
+         # Handle TCP
+      if pkt.haslayer(TCP) and pkt[IP].dst == args.reflector_ip:
+         del ippkt[TCP].chksum
+      if pkt.haslayer(UDP) and pkt[IP].dst == args.reflector_ip:
+         del ippkt[UDP].chksum
+      if pkt.haslayer(ICMP) and pkt[IP].dst == args.reflector_ip:
+         del ippkt[ICMP].chksum
 
-#print('Source ip: ', pkt[ARP].psrc, ' ', 'source ethernet: ', pkt[ARP].hwsrc, ' ', 'destination ip: ', ' ', 'pkt[ARP].pdst')
+# create packet and send
+      ippkt[Ether].src = args.reflector_ethernet
+      ippkt[Ether].dst = pkt[Ether].src
+      ippkt[IP].src = args.reflector_ip
+      ippkt[IP].dst = pkt[IP].src
+      del ippkt[IP].chksum
+      ippkt.show2()
+
+      send(ippkt)
+      
+
+
+sniff(iface=args.interface, prn=reflect_pkt, store=0)
+
+
