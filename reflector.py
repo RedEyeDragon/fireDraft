@@ -52,63 +52,42 @@ def reflect_pkt (pkt):
 
 
 # Handle IP and Ethernet layers
+
    else:
       ippkt = eval(pkt.command())
 
-      # IP check
+# IP check
       if pkt.haslayer(IP):
-
-        # Check if victim is destination
-        if pkt[IP].dst == args.victim_ip:
+# Check if victim is destination
+         if pkt[IP].dst == args.victim_ip:
             ippkt[Ether].src = args.reflector_ethernet
             ippkt[Ether].dst = pkt[Ether].src
+            ippkt[IP].src = args.reflector_ip
+            ippkt[IP].dst = pkt[IP].src
             del ippkt[IP].chksum
 
 
-        # Check if reflector is destination
-        elif pkt[IP].dst == args.reflector_ip:
+# Check if reflector is destination
+         elif pkt[IP].dst == args.reflector_ip:
             ippkt[Ether].src = args.victim_ethernet
             ippkt[Ether].dst = pkt[Ether].src
+            ippkt[IP].src = args.victim_ip
+            ippkt[IP].dst = pkt[IP].src
             del ippkt[IP].chksum
 
 
-      # Check if has Ethernet layer
-      elif pkt.haslayer(TCP):
+# Check if has Ethernet layer
+      if pkt.haslayer(TCP):
+            del ippkt[TCP].chksum
 
-         if pkt[TCP].dst == args.victim_ethernet:
-            ippkt[Ether].src = args.reflector_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            del ippkt[Ether/TCP].chksum
+# Check if has UDP layer
+      if pkt.haslayer(UDP):
+            del ippkt[UDP].chksum
 
-
-         if pkt[TCP].dst == reflector_ethernet:
-            ippkt[Ether].src = args.victim_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            del ippkt[Ether/TCP].chksum
-
-
-      # Check if has UDP layer
-      elif pkt.haslayer(UDP):
-
-         if pkt[UDP].dst == args.victim_ethernet:
-            ippkt[Ether].src = args.reflector_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            del ippkt[Ether/UDP].chksum
-
-         if pkt[UDP].dst == args.reflector_ethernet:
-            ippkt[Ether].src = args.victim_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            del ippkt[Ether/UDP].chksum
-
-
-      # create reflected packet and send back
-      ippkt[IP].src = args.reflector_ip
-      ippkt[IP].dst = pkt[IP].src
-      ippkt.show2()
-
-      print ("IP reply with new checksum")
-      send(ippkt)
+# create reflected packet and send back
+            ippkt.show2()
+            print ("IP reply with new checksum")
+            #Bryan - need to send this packet across args.interface
+            sendp(ippkt, iface = args.interface)
 
 sniff(iface=args.interface, prn=reflect_pkt, store=0)
-
-
