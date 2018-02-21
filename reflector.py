@@ -52,7 +52,6 @@ def reflect_pkt (pkt):
 
 
 # Handle IP and Ethernet layers
-
    else:
       ippkt = eval(pkt.command())
 
@@ -76,7 +75,7 @@ def reflect_pkt (pkt):
             del ippkt[IP].chksum
 
 
-# Check if has Ethernet layer
+# Check if has TCP layer
       if pkt.haslayer(TCP):
             del ippkt[TCP].chksum
 
@@ -85,9 +84,8 @@ def reflect_pkt (pkt):
             del ippkt[UDP].chksum
 
 # create reflected packet and send back
-            ippkt.show2()
-            print ("IP reply with new checksum")
-            #Bryan - need to send this packet across args.interface
-            sendp(ippkt, iface = args.interface)
+      ippkt.show2()
+      print ("IP reply with new checksum")
+      sendp(ippkt, iface = args.interface)
 
-sniff(iface=args.interface, prn=reflect_pkt, store=0)
+sniff(iface=args.interface, filter='host '+args.victim_ip+'or host '+args.reflector_ip, prn=reflect_pkt, store=0)
