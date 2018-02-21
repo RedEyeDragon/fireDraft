@@ -72,7 +72,8 @@ def reflect_pkt (pkt):
 
       # Check for Ethernet layer
       if pkt.haslayer(Ether):
-        )
+        
+
         # Check if the destination address is victim
          if pkt[Ether].dst == args.victim_ethernet:
             ippkt[Ether].src = args.reflector_ethernet
