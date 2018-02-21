@@ -70,21 +70,21 @@ def reflect_pkt (pkt):
             del ippkt[Ether].chksum
 
 
-# IP check
+      # IP check
       if pkt.haslayer(IP):
-# Check if victim is destination
+         # Check if victim is destination
          if pkt[IP].dst == args.victim_ip:
-            ippkt[Ether].src = args.reflector_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
+            #ippkt[Ether].src = args.reflector_ethernet
+            #ippkt[Ether].dst = pkt[Ether].src
             ippkt[IP].src = args.reflector_ip
             ippkt[IP].dst = pkt[IP].src
             del ippkt[IP].chksum
 
 
-# Check if reflector is destination
+         # Check if reflector is destination
          elif pkt[IP].dst == args.reflector_ip:
-            ippkt[Ether].src = args.victim_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
+            #ippkt[Ether].src = args.victim_ethernet
+            #ippkt[Ether].dst = pkt[Ether].src
             ippkt[IP].src = args.victim_ip
             ippkt[IP].dst = pkt[IP].src
             del ippkt[IP].chksum
@@ -92,17 +92,17 @@ def reflect_pkt (pkt):
 
 
 
-# Check if has TCP layer
+      # Check if has TCP layer
       if pkt.haslayer(TCP):
          del ippkt[TCP].chksum
 
 
-# Check if has UDP layer
+      # Check if has UDP layer
       if pkt.haslayer(UDP):
          del ippkt[UDP].chksum
 
 
-# create reflected packet and send back
+      # create reflected packet and send back
       print ("IP/Ethernet packet being sent: ")
       ippkt.show2()
 
