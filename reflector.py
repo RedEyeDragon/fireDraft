@@ -17,6 +17,9 @@ conf.iface = args.interface
 
 # monitor the arp requests
 def reflect_pkt (pkt):
+   print ("original packet: ")
+   pkt.show2()
+
 # Check to see if has ARP layer
    if pkt.haslayer(ARP):
 
@@ -98,6 +101,7 @@ def reflect_pkt (pkt):
 
 
 # create reflected packet and send back
+      print ("IP/Ethernet packet being sent: ")
       ippkt.show2()
 
       sendp(ippkt, iface = args.interface)
