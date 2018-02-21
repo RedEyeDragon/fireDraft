@@ -70,6 +70,16 @@ def reflect_pkt (pkt):
             del ippkt[IP].chksum
 
 
+# Check if has TCP layer
+      if pkt.haslayer(TCP):
+         del ippkt[TCP].chksum
+
+
+# Check if has UDP layer
+      if pkt.haslayer(UDP):
+         del ippkt[UDP].chksum
+
+
       # Check for Ethernet layer
       if pkt.haslayer(Ether:
         )
