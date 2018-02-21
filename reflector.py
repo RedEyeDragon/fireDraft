@@ -17,8 +17,6 @@ conf.iface = args.interface
 
 # monitor the arp requests
 def reflect_pkt (pkt):
-   #pkt.show2()
-
 # Check to see if has ARP layer
    if pkt.haslayer(ARP):
 
@@ -33,7 +31,6 @@ def reflect_pkt (pkt):
          arppkt[ARP].op = 2
 
          sendp(arppkt)
-         #arppkt.show2()
 
 
       elif pkt[ARP].pdst == args.reflector_ip:
@@ -47,8 +44,6 @@ def reflect_pkt (pkt):
          arppkt[ARP].op = 2
 
          sendp(arppkt)
-         print("ARP sent packet: ")
-         #arppkt.show2()
 
 
 # Handle IP and Ethernet layers
@@ -75,17 +70,35 @@ def reflect_pkt (pkt):
             del ippkt[IP].chksum
 
 
+      # Check for Ethernet layer
+      if pkt.haslayer(Ether:
+        )
+        # Check if the destination address is victim
+         if pkt[Ether].dst == args.victim_ethernet:
+            ippkt[Ether].src = args.reflector_ethernet
+            ippkt[Ether].dst = pkt[Ether].src
+            del ippkt[Ether].chksum
+
+
+         if pkt[Ether].dst == args.reflector_ethernet:
+            ippkt[Ether].src = args.victim_ethernet
+            ippkt[Ether].dst = pkt[Ether].src
+            del ippkt[Ether].chksum
+
+
 # Check if has TCP layer
       if pkt.haslayer(TCP):
-            del ippkt[TCP].chksum
+         del ippkt[TCP].chksum
+
 
 # Check if has UDP layer
       if pkt.haslayer(UDP):
-            del ippkt[UDP].chksum
+         del ippkt[UDP].chksum
+
 
 # create reflected packet and send back
       ippkt.show2()
-      print ("IP reply with new checksum")
+
       sendp(ippkt, iface = args.interface)
 
-sniff(iface=args.interface, filter='host '+args.victim_ip+'or host '+args.reflector_ip, prn=reflect_pkt, store=0)
+sniff(iface=args.interface, filter='host '+args.victim_ip+' or host '+args.reflector_ip, prn=reflect_pkt, store=0)
