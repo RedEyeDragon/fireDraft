@@ -17,6 +17,9 @@ conf.iface = args.interface
 
 # monitor the arp requests
 def reflect_pkt (pkt):
+   print ("original packet: ")
+   pkt.show2()
+
 # Check to see if has ARP layer
    if pkt.haslayer(ARP):
 
@@ -50,29 +53,10 @@ def reflect_pkt (pkt):
    else:
       ippkt = eval(pkt.command())
 
-# IP check
-      if pkt.haslayer(IP):
-# Check if victim is destination
-         if pkt[IP].dst == args.victim_ip:
-            ippkt[Ether].src = args.reflector_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            ippkt[IP].src = args.reflector_ip
-            ippkt[IP].dst = pkt[IP].src
-            del ippkt[IP].chksum
-
-
-# Check if reflector is destination
-         elif pkt[IP].dst == args.reflector_ip:
-            ippkt[Ether].src = args.victim_ethernet
-            ippkt[Ether].dst = pkt[Ether].src
-            ippkt[IP].src = args.victim_ip
-            ippkt[IP].dst = pkt[IP].src
-            del ippkt[IP].chksum
-
-
       # Check for Ethernet layer
       if pkt.haslayer(Ether):
-        )
+        
+
         # Check if the destination address is victim
          if pkt[Ether].dst == args.victim_ethernet:
             ippkt[Ether].src = args.reflector_ethernet
@@ -86,19 +70,42 @@ def reflect_pkt (pkt):
             del ippkt[Ether].chksum
 
 
-# Check if has TCP layer
+      # IP check
+      if pkt.haslayer(IP):
+         # Check if victim is destination
+         if pkt[IP].dst == args.victim_ip:
+            #ippkt[Ether].src = args.reflector_ethernet
+            #ippkt[Ether].dst = pkt[Ether].src
+            ippkt[IP].src = args.reflector_ip
+            ippkt[IP].dst = pkt[IP].src
+            del ippkt[IP].chksum
+
+
+         # Check if reflector is destination
+         elif pkt[IP].dst == args.reflector_ip:
+            #ippkt[Ether].src = args.victim_ethernet
+            #ippkt[Ether].dst = pkt[Ether].src
+            ippkt[IP].src = args.victim_ip
+            ippkt[IP].dst = pkt[IP].src
+            del ippkt[IP].chksum
+
+
+
+
+      # Check if has TCP layer
       if pkt.haslayer(TCP):
          del ippkt[TCP].chksum
 
 
-# Check if has UDP layer
+      # Check if has UDP layer
       if pkt.haslayer(UDP):
          del ippkt[UDP].chksum
 
 
-# create reflected packet and send back
+      # create reflected packet and send back
+      print ("IP/Ethernet packet being sent: ")
       ippkt.show2()
 
       sendp(ippkt, iface = args.interface)
 
-sniff(iface=args.interface, filter='host '+args.victim_ip+' or host '+args.reflector_ip, prn=reflect_pkt, store=0)
+sniff(iface=args.interface, filter='dst host '+args.victim_ip+' or dst host '+args.reflector_ip, prn=reflect_pkt, store=0)
