@@ -324,8 +324,10 @@ awesomeFuncA:
 	.type	main, @function
 
  main:
+ pushl %ebp
 
 	andl	$-16, %esp
+ movl %esp, %ebp
 	subl	$16, %esp
 	movl	$11, (%esp)
 	call	malloc
